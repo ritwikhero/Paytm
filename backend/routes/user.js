@@ -12,6 +12,12 @@ const signupSchema = zod.object({
     lastName : zod.string(),
 });
 
+const signInSchema = zod.object({
+    username : zod.string().email(),
+    password : zod.string(),
+})
+
+//SingUp route
 router.post("/signup", async (req,res) =>{
     const body = req.body;
     const {success} = signupSchema.safeParse(req.body);
@@ -42,4 +48,35 @@ router.post("/signup", async (req,res) =>{
         message: "User created successfully",
         token: token
     })
+});
+
+//SignIn Route
+
+router.post("/signin", async (req,res) => {
+    const body = req.body;
+    const {sucesss} = signInSchema.safeParse(body);
+    if(!sucesss){
+        return res.status(411).json({
+            msd : "Wrong inputs"
+        });
+    }
+
+    const user = await User.findOne({
+        username : body.username,
+        password : body.password
+    });
+
+    if(user){
+        const token = jwt.sign({
+            userId : user._id,
+        },JWT_SECRET);
+        res.json({
+            token : token,
+        });
+        return;
+    }
+    res.status(411).json({
+        message: "Error while logging in"
+    })
+
 });
