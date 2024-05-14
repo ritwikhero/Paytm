@@ -1,5 +1,6 @@
 cosnt express = require("express");
 const {User} = require("../db");
+const {authMiddleware} = require("../middlewares/authorization");
 const jwt = require("jsonwebtoken");
 const JWT_SECRET = require("../config");
 const zod = require("zod");
@@ -12,44 +13,50 @@ const signupSchema = zod.object({
     lastName : zod.string(),
 });
 
-const signInSchema = zod.object({
-    username : zod.string().email(),
-    password : zod.string(),
-})
-
 //SingUp route
 router.post("/signup", async (req,res) =>{
     const body = req.body;
     const {success} = signupSchema.safeParse(req.body);
 
     if(!success){
-        return res.json({
-            msg : "Email already present / incorrect inputs"
+        return res.status(411).json({
+            msg : "Email already present / Incorrect inputs"
         });
     }
 
-    const user = User.findOne({
+    const existingUser = await User.findOne({
         username : body.username
     })
 
-    if(user._id){
-        return res.json({
-            msg : "Email already present / incorrect inputs"
+    if(existingUser){
+        return res.status(411).json({
+            msg : "Email already present / Incorrect inputs"
         });
     }
 
-    const dbUser = await user.create(body);
+    const dbUser = await User.create({
+        username : body.username,
+        password : body.password,
+        firstName : body.findName,
+        lastName : body.lastName
+    });
 
+    const userId = user._id;
     const token = jwt.sign({
-        userId : user._id,
-        
+        userId
     },JWT_SECRET);
+
     res.json({
         message: "User created successfully",
         token: token
     })
 });
 
+
+const signInSchema = zod.object({
+    username : zod.string().email(),
+    password : zod.string(),
+})
 //SignIn Route
 
 router.post("/signin", async (req,res) => {
@@ -79,4 +86,27 @@ router.post("/signin", async (req,res) => {
         message: "Error while logging in"
     })
 
+});
+
+//update Route
+const updateSchema = zod.object({
+    password : zod.string().optional(),
+    firstName : zod.string().optional(),
+    lastName : zod.string().optional()
+});
+
+router.put("/uopdate", async (req,res) => {
+    const body = req.body;
+    const {success} = updateSchema.safeParse(body);
+
+    if(!success){
+        res.status(411).json({
+            message : "Error while updating information"
+        });
+    }
+    await updateOne({_id : req.userId}, req.body);
+
+    res.json({
+        message : "Updated successfully"
+    })
 });
