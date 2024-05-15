@@ -88,7 +88,7 @@ router.post("/signin", async (req,res) => {
 
 });
 
-//update Route
+//UPDATE Route
 const updateSchema = zod.object({
     password : zod.string().optional(),
     firstName : zod.string().optional(),
@@ -109,4 +109,31 @@ router.put("/uopdate", async (req,res) => {
     res.json({
         message : "Updated successfully"
     })
+});
+
+//GET Route  , get people to send money
+
+router.get("/bulk" , async (req, res) => {
+    const filter = req.query.filter || "";
+    const users = await User.find({
+        $or : [{
+            firstName : {
+                "$regex" : filter
+            }
+        }, 
+        {
+            lastName : {
+                "$regex" : filter
+            }
+        }]
+    });
+
+    res.json({
+        user : users.map(user => ({
+            username : user.username,
+            firstName : user.firstName,
+            lastName : user.lastName,
+            _id : user._id,
+        }));
+    });
 });
