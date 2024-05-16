@@ -1,5 +1,5 @@
 cosnt express = require("express");
-const {User} = require("../db");
+const {User, Account} = require("../db");
 const {authMiddleware} = require("../middlewares/authorization");
 const jwt = require("jsonwebtoken");
 const JWT_SECRET = require("../config");
@@ -42,6 +42,12 @@ router.post("/signup", async (req,res) =>{
     });
 
     const userId = user._id;
+    // this gives user money upon sign up
+    await Account.create({
+        userId,
+        balance : 1 + Math.random()* 10000,
+    });
+
     const token = jwt.sign({
         userId
     },JWT_SECRET);
