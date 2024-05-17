@@ -1,14 +1,14 @@
 const mongoose = require("mongoose");
 
-mongoose.connect('mongodb+srv://ritwiksingh91099:Ritwik%409@cluster0.abno3ce.mongodb.net/paytm');
+mongoose.connect('mongodb+srv://ritwiksingh91099:QhqWgFfiIB2JzDCh@patymserver.r9l85cu.mongodb.net/patymDB');
 
 const userSchema = mongoose.Schema({
-    userName : {
+    username : {
         type : String,
         required : true,
         unique : true,
-        trim : true,
         lowercase : true,
+        trim : true,
         minLength : 3,
         maxLength: 30,
     },
@@ -28,10 +28,10 @@ const userSchema = mongoose.Schema({
         required : true,
         trim : true,
         maxLength : 50,
-    },
+    }
 });
 
-const User = mongoose.model("User",userSchema);
+
 
 const accountSchema = mongoose.Schema({
     userId : {
@@ -46,6 +46,7 @@ const accountSchema = mongoose.Schema({
 });
 
 const Account = mongoose.model("Account", accountSchema);
+const User = mongoose.model("User",userSchema);
 
 module.exports = {
     User,

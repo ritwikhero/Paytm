@@ -1,4 +1,4 @@
-cosnt express = require("express");
+const express = require("express");
 const {User, Account} = require("../db");
 const {authMiddleware} = require("../middlewares/authorization");
 const jwt = require("jsonwebtoken");
@@ -7,7 +7,7 @@ const zod = require("zod");
 const router = express.Router();
 
 const signupSchema = zod.object({
-    username : zod.string(),
+    username : zod.string().email(),
     password : zod.string(),
     firstName : zod.string(),
     lastName : zod.string(),
@@ -15,17 +15,17 @@ const signupSchema = zod.object({
 
 //SingUp route
 router.post("/signup", async (req,res) =>{
-    const body = req.body;
+    // const body = req.body;
     const {success} = signupSchema.safeParse(req.body);
 
     if(!success){
         return res.status(411).json({
-            msg : "Email already present / Incorrect inputs"
+            message : "Incorrect inputs"
         });
     }
 
     const existingUser = await User.findOne({
-        username : body.username
+        username : req.body.username
     })
 
     if(existingUser){
@@ -34,11 +34,11 @@ router.post("/signup", async (req,res) =>{
         });
     }
 
-    const dbUser = await User.create({
-        username : body.username,
-        password : body.password,
-        firstName : body.findName,
-        lastName : body.lastName
+    const user = await User.create({
+        username : req.body.username,
+        password : req.body.password,
+        firstName : req.body.findName,
+        lastName : req.body.lastName
     });
 
     const userId = user._id;
@@ -140,6 +140,8 @@ router.get("/bulk" , async (req, res) => {
             firstName : user.firstName,
             lastName : user.lastName,
             _id : user._id,
-        }));
+        }))
     });
 });
+
+module.exports = router
