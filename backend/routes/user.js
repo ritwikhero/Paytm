@@ -2,11 +2,11 @@ const express = require("express");
 const {User, Account} = require("../db");
 const {authMiddleware} = require("../middlewares/authorization");
 const jwt = require("jsonwebtoken");
-const JWT_SECRET = require("../config");
+const {JWT_SECRET} = require("../config");
 const zod = require("zod");
 const router = express.Router();
 
-const signupSchema = zod.object({
+const signupBody = zod.object({
     username : zod.string().email(),
     password : zod.string(),
     firstName : zod.string(),
@@ -16,7 +16,7 @@ const signupSchema = zod.object({
 //SingUp route
 router.post("/signup", async (req,res) =>{
     // const body = req.body;
-    const {success} = signupSchema.safeParse(req.body);
+    const {success} = signupBody.safeParse(req.body);
 
     if(!success){
         return res.status(411).json({
@@ -37,7 +37,7 @@ router.post("/signup", async (req,res) =>{
     const user = await User.create({
         username : req.body.username,
         password : req.body.password,
-        firstName : req.body.findName,
+        firstName : req.body.firstName,
         lastName : req.body.lastName
     });
 
@@ -59,7 +59,8 @@ router.post("/signup", async (req,res) =>{
 });
 
 
-const signInSchema = zod.object({
+
+const signInBody = zod.object({
     username : zod.string().email(),
     password : zod.string(),
 })
@@ -67,7 +68,7 @@ const signInSchema = zod.object({
 
 router.post("/signin", async (req,res) => {
     const body = req.body;
-    const {sucesss} = signInSchema.safeParse(body);
+    const {sucesss} = signInBody.safeParse(body);
     if(!sucesss){
         return res.status(411).json({
             msd : "Wrong inputs"
@@ -95,15 +96,15 @@ router.post("/signin", async (req,res) => {
 });
 
 //UPDATE Route
-const updateSchema = zod.object({
+const updateBody = zod.object({
     password : zod.string().optional(),
     firstName : zod.string().optional(),
     lastName : zod.string().optional()
 });
 
-router.put("/uopdate", async (req,res) => {
+router.put("/update", async (req,res) => {
     const body = req.body;
-    const {success} = updateSchema.safeParse(body);
+    const {success} = updateBody.safeParse(body);
 
     if(!success){
         res.status(411).json({
